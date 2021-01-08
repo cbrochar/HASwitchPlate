@@ -83,6 +83,7 @@ const unsigned long telnetInputMax = 128;           // Size of user input buffer
 bool motionEnabled = false;                         // Motion sensor is enabled
 bool mdnsEnabled = true;                            // mDNS enabled
 bool beepEnabled = false;                           // Keypress beep enabled
+bool sleepEnabled = false;                          // Sleep enabled
 unsigned long beepPrevMillis = 0;                   // will store last time beep was updated
 unsigned long beepOnTime = 1000;                    // milliseconds of on-time for beep
 unsigned long beepOffTime = 1000;                   // milliseconds of off-time for beep
@@ -123,6 +124,7 @@ String nextionModel;                                // Record reported model num
 const byte nextionSuffix[] = {0xFF, 0xFF, 0xFF};    // Standard suffix for Nextion commands
 uint32_t tftFileSize = 0;                           // Filesize for TFT firmware upload
 uint8_t nextionResetPin = D6;                       // Pin for Nextion power rail switch (GPIO12/D6)
+int timelastTouch;                                  // store time last of last touch
 
 WiFiClient wifiClient;
 WiFiClient wifiMQTTClient;
@@ -221,6 +223,9 @@ void setup()
     beepPin = 4;
     pinMode(beepPin, OUTPUT);
   }
+
+  if (sleepEnabled) enableSleep();  // Setup sleep if enabled
+  else disableSleep(); //ensure sleep is disabled
 
   if (debugTelnetEnabled)
   { // Setup telnet server for remote debug output
@@ -705,6 +710,11 @@ void nextionProcessInput()
     // Definition of TouchEvent: Press Event 0x01, Release Event 0X00
     // Example: 0x65 0x00 0x02 0x01 0xFF 0xFF 0xFF
     // Meaning: Touch Event, Page 0, Object 2, Press
+
+    ////CBROC - Grab touch event to turn on Backlight
+    
+
+    
     String nextionPage = String(nextionReturnBuffer[1]);
     String nextionButtonID = String(nextionReturnBuffer[2]);
     byte nextionButtonAction = nextionReturnBuffer[3];
@@ -859,6 +869,11 @@ void nextionProcessInput()
         comokField += String(char(nextionReturnBuffer[i]));
       }
     }
+  }
+
+  else if (nextionReturnBuffer[0] == 0x86 )
+  { // Catch Auto Entered Sleep Mode
+    
   }
 
   else if (nextionReturnBuffer[0] == 0x1A)
@@ -1504,12 +1519,23 @@ void configRead()
               beepEnabled = false;
             }
           }
+          if (!configJson["sleepEnabled"].isNull())
+          {
+            if (configJson["sleepEnabled"])
+            {
+              sleepEnabled = true;
+            }
+            else
+            {
+              sleepEnabled = false;
+            }            
+          }
           String configJsonStr;
           serializeJson(configJson, configJsonStr);
           debugPrintln(String(F("SPIFFS: parsed json:")) + configJsonStr);
         }
       }
-      else
+    else
       {
         debugPrintln(F("SPIFFS: [ERROR] Failed to read /config.json"));
       }
@@ -1551,6 +1577,7 @@ void configSave()
   jsonConfigValues["debugTelnetEnabled"] = debugTelnetEnabled;
   jsonConfigValues["mdnsEnabled"] = mdnsEnabled;
   jsonConfigValues["beepEnabled"] = beepEnabled;
+  jsonConfigValues["sleepEnabled"] = sleepEnabled;
 
   debugPrintln(String(F("SPIFFS: mqttServer = ")) + String(mqttServer));
   debugPrintln(String(F("SPIFFS: mqttPort = ")) + String(mqttPort));
@@ -1565,6 +1592,7 @@ void configSave()
   debugPrintln(String(F("SPIFFS: debugTelnetEnabled = ")) + String(debugTelnetEnabled));
   debugPrintln(String(F("SPIFFS: mdnsEnabled = ")) + String(mdnsEnabled));
   debugPrintln(String(F("SPIFFS: beepEnabled = ")) + String(beepEnabled));
+  debugPrintln(String(F("SPIFFS: sleepEnabled = ")) + String(sleepEnabled));
 
   File configFile = SPIFFS.open("/config.json", "w");
   if (!configFile)
@@ -1696,6 +1724,13 @@ void webHandleRoot()
 
   httpMessage += String(F("><br/><b>Keypress beep enabled:</b><input id='beepEnabled' name='beepEnabled' type='checkbox'"));
   if (beepEnabled)
+  {
+    httpMessage += String(F(" checked='checked'"));
+  }
+
+  //Include Sleep Configuration
+  httpMessage += String(F("><br/><b>Sleep enabled:</b><input id='sleepEnabled' name='sleepEnabled' type='checkbox'"));
+  if (sleepEnabled)
   {
     httpMessage += String(F(" checked='checked'"));
   }
@@ -1867,6 +1902,16 @@ void webHandleSaveConfig()
   { // beepEnabled was enabled but should now be disabled
     shouldSaveConfig = true;
     beepEnabled = false;
+  }
+  if ((webServer.arg("sleepEnabled") == String("on")) && !sleepEnabled)
+  { // sleepEnabled was disabled but should now be enabled
+    shouldSaveConfig = true;
+    sleepEnabled = true;
+  }
+  else if ((webServer.arg("sleepEnabled") == String("")) && sleepEnabled)
+  { // sleepEnabled was enabled but should now be disabled
+    shouldSaveConfig = true;
+    sleepEnabled = false;
   }
 
   if (shouldSaveConfig)
@@ -2671,4 +2716,21 @@ String printHex8(byte *data, uint8_t length)
   }
   hex8String.toUpperCase();
   return hex8String;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Submitted by cbroc to enable sleep functionality commands. 
+
+void enableSleep()
+{
+//todo add ability to configure sleep timer
+  nextionSendCmd(String("thup=1")); //enable auto wake on touch
+  nextionSendCmd(String("thsp=30")); //set the internal sleep timer to 30 seconds
+}
+
+void disableSleep()
+{
+//todo add ability to configure sleep timer
+  nextionSendCmd(String("sleep=1")); //send wake command to be sure nextion is awake
+  nextionSendCmd(String("thsp=0")); //send disable sleep command
 }
