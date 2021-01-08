@@ -35,8 +35,7 @@ fi
 # Check for write access to configuration.yaml
 if [ ! -w configuration.yaml ]
 then
-  echo "ERROR: Cannot write to 'configuration.yaml'.  Check that you are"
-  echo "       running as user 'homeassistant'.  Exiting."
+  echo "ERROR: Cannot write to 'configuration.yaml'.  Exiting."
   exit 1
 fi
 
@@ -71,7 +70,7 @@ then
   then
     echo "==========================================================================="
     echo "WARNING: Conflicting packages definition found in 'configuration.yaml'."
-    echo "         Please add the following statement to your configuration:"
+    echo "         Please add the following lines to your configuration:"
     echo ""
     echo "homeassistant:"
     echo "  packages: !include_dir_named packages"
@@ -86,8 +85,10 @@ then
     else
       echo "==========================================================================="
       echo "WARNING: Could not add package declaration to 'configuration.yaml'."
-      echo "         Please add the following statement to your configuration:"
+      echo "         Please add the following lines to your configuration:"
+      echo ""
       echo "default_config:"
+      echo "homeassistant:"
       echo "  packages: !include_dir_named packages"
       echo "==========================================================================="
     fi
@@ -97,26 +98,43 @@ fi
 # Enable recorder if not enabled to persist relevant values
 if ! grep "^recorder:" configuration.yaml > /dev/null
 then
-  echo "recorder:" >> configuration.yaml
+  echo >> configuration.yaml
+  echo "\nrecorder:" >> configuration.yaml
 fi
 
-# Warn if MQTT is not enabled
-if ! grep "^mqtt:" configuration.yaml > /dev/null
+# Check if we have a scenes.yaml and create some simple examples if the file is empty
+if [ -f scenes.yaml ]
 then
-  if ! grep '"domain": "mqtt"' .storage/core.config_entries > /dev/null
+  if [[ $(< scenes.yaml) == "[]" ]]
   then
-    echo "==========================================================================="
-    echo "WARNING: Required MQTT broker configuration not setup in configuration.yaml"
-    echo "         or added under Configuration > Integrations."
-    echo ""
-    echo "HASP WILL NOT FUNCTION UNTIL THIS HAS BEEN CONFIGURED!"
-    echo ""
-    echo "Review the following for options on setting up your Home Assistant install"
-    echo "with MQTT: https://www.home-assistant.io/docs/mqtt/broker"
-    echo ""
-    echo "For hassio users, you can deploy the Mosquitto broker add-on here:"
-    echo "https://github.com/home-assistant/hassio-addons/blob/master/mosquitto"
-    echo "==========================================================================="
+    echo "INFO: empty scenes.yaml found, creating demonstration scenes"
+    echo "- id: '"$(( ${EPOCHREALTIME/./} / 1000 ))"'" > scenes.yaml
+    echo "  name: ${hasp_device} Backlight 100%" >> scenes.yaml
+    echo "  entities:" >> scenes.yaml
+    echo "    light.${hasp_device}_backlight:" >> scenes.yaml
+    echo "      state: 'on'" >> scenes.yaml
+    echo "      brightness: 255" >> scenes.yaml
+    sleep 0.01
+    echo "- id: '"$(( ${EPOCHREALTIME/./} / 1000 ))"'" >> scenes.yaml
+    echo "  name: ${hasp_device} Backlight 75%" >> scenes.yaml
+    echo "  entities:" >> scenes.yaml
+    echo "    light.${hasp_device}_backlight:" >> scenes.yaml
+    echo "      state: 'on'" >> scenes.yaml
+    echo "      brightness: 191" >> scenes.yaml
+    sleep 0.01
+    echo "- id: '"$(( ${EPOCHREALTIME/./} / 1000 ))"'" >> scenes.yaml
+    echo "  name: ${hasp_device} Backlight 50%" >> scenes.yaml
+    echo "  entities:" >> scenes.yaml
+    echo "    light.${hasp_device}_backlight:" >> scenes.yaml
+    echo "      state: 'on'" >> scenes.yaml
+    echo "      brightness: 128" >> scenes.yaml
+    sleep 0.01
+    echo "- id: '"$(( ${EPOCHREALTIME/./} / 1000 ))"'" >> scenes.yaml
+    echo "  name: ${hasp_device} Backlight 25%" >> scenes.yaml
+    echo "  entities:" >> scenes.yaml
+    echo "    light.${hasp_device}_backlight:" >> scenes.yaml
+    echo "      state: 'on'" >> scenes.yaml
+    echo "      brightness: 64" >> scenes.yaml
   fi
 fi
 
@@ -214,6 +232,7 @@ echo "to manage the new device."
 echo ""
 echo "Here are the contents of that file to paste into your Lovelace config."
 echo "Hold 'shift' while selecting this text to copy to your clipboard:"
+echo "==========================================================================="
 echo ""
 
 cat packages/hasp_${hasp_device}_lovelace.txt

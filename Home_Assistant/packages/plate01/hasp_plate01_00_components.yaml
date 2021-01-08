@@ -19,6 +19,7 @@ light:
     brightness_state_topic: "hasp/plate01/brightness/state"
     brightness_command_topic: "hasp/plate01/brightness/set"
     availability_topic: "hasp/plate01/status"
+    brightness_scale: 100
     payload_available: "ON"
     payload_not_available: "OFF"
   # These MQTT lights allow the user to select from a color wheel. Bitwise
@@ -202,40 +203,10 @@ input_number:
     mode: box
 
 group:
-  plate01:
-    name: plate01
-    entities:
-      - binary_sensor.plate01_connected
-      - sensor.plate01_status
-      - light.plate01_backlight
-      - group.plate01_pageselect
-      - group.plate01_colors
-      - group.plate01_automations
-  plate01_pageselect:
-    name: plate01 Page Selection
-    entities:
-      - input_number.hasp_plate01_activepage
-      - input_number.hasp_plate01_pagebutton1page
-      - input_text.hasp_plate01_pagebutton1label
-      - input_select.hasp_plate01_pagebutton1font
-      - input_number.hasp_plate01_pagebutton2page
-      - input_text.hasp_plate01_pagebutton2label
-      - input_select.hasp_plate01_pagebutton2font
-      - input_number.hasp_plate01_pagebutton3page
-      - input_text.hasp_plate01_pagebutton3label
-      - input_select.hasp_plate01_pagebutton3font
   plate01_automations:
     name: plate01 automations
     entities:
       - automation.hasp_plate01_00_firsttimesetup
-  plate01_colors:
-    name: plate01 colors
-    entities:
-      - input_select.hasp_plate01_theme
-      - light.hasp_plate01_selected_foreground_color
-      - light.hasp_plate01_selected_background_color
-      - light.hasp_plate01_unselected_foreground_color
-      - light.hasp_plate01_unselected_background_color
 
 automation:
   ##############################################################################
@@ -245,65 +216,65 @@ automation:
     action:
       - service: automation.trigger
         data:
-          entity_id: "automation.hasp_plate01_00_automationgroupupdate"
+          entity_id: automation.hasp_plate01_00_automationgroupupdate
       - service: homeassistant.turn_on
         data:
-          entity_id: "group.plate01_automations"
+          entity_id: group.plate01_automations
 
       - service: input_number.set_value
         data:
-          entity_id: "input_number.hasp_plate01_pagebutton1page"
+          entity_id: input_number.hasp_plate01_pagebutton1page
           value: 1
       - service: input_text.set_value
         data:
-          entity_id: "input_text.hasp_plate01_pagebutton1label"
+          entity_id: input_text.hasp_plate01_pagebutton1label
           value: "scenes"
       - service: input_select.select_option
         data:
-          entity_id: "input_select.hasp_plate01_pagebutton1font"
+          entity_id: input_select.hasp_plate01_pagebutton1font
           option: "6 Noto Sans 32"
 
       - service: input_number.set_value
         data:
-          entity_id: "input_number.hasp_plate01_pagebutton2page"
+          entity_id: input_number.hasp_plate01_pagebutton2page
           value: 2
       - service: input_text.set_value
         data:
-          entity_id: "input_text.hasp_plate01_pagebutton2label"
+          entity_id: input_text.hasp_plate01_pagebutton2label
           value: "status"
       - service: input_select.select_option
         data:
-          entity_id: "input_select.hasp_plate01_pagebutton2font"
+          entity_id: input_select.hasp_plate01_pagebutton2font
           option: "6 Noto Sans 32"
 
       - service: input_number.set_value
         data:
-          entity_id: "input_number.hasp_plate01_pagebutton3page"
+          entity_id: input_number.hasp_plate01_pagebutton3page
           value: 3
       - service: input_text.set_value
         data:
-          entity_id: "input_text.hasp_plate01_pagebutton3label"
+          entity_id: input_text.hasp_plate01_pagebutton3label
           value: "lights"
       - service: input_select.select_option
         data:
-          entity_id: "input_select.hasp_plate01_pagebutton3font"
+          entity_id: input_select.hasp_plate01_pagebutton3font
           option: "6 Noto Sans 32"
 
       - service: input_number.set_value
         data:
-          entity_id: "input_number.hasp_plate01_activepage"
+          entity_id: input_number.hasp_plate01_activepage
           value: 1
 
       - service: light.turn_on
         entity_id:
-          - "light.hasp_plate01_selected_foreground_color"
-          - "light.hasp_plate01_selected_background_color"
-          - "light.hasp_plate01_unselected_foreground_color"
-          - "light.hasp_plate01_unselected_background_color"
+          - light.hasp_plate01_selected_foreground_color
+          - light.hasp_plate01_selected_background_color
+          - light.hasp_plate01_unselected_foreground_color
+          - light.hasp_plate01_unselected_background_color
 
       - service: input_select.select_option
         data:
-          entity_id: "input_select.hasp_plate01_theme"
+          entity_id: input_select.hasp_plate01_theme
           option: "Dark on Light"
 
       - service: climate.set_temperature
@@ -314,6 +285,41 @@ automation:
           target_temp_low: 68
           hvac_mode: auto
 
+      - service: input_text.set_value
+        data:
+          entity_id: input_text.hasp_plate01_p1_b4_text
+          value: "     Lights On "
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.hasp_plate01_p1_b4_font
+          option: "7 Noto Sans 48"
+      - service: input_text.set_value
+        data:
+          entity_id: input_text.hasp_plate01_p1_b5_text
+          value: "     Daylight "
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.hasp_plate01_p1_b5_font
+          option: "7 Noto Sans 48"
+      - service: input_text.set_value
+        data:
+          entity_id: input_text.hasp_plate01_p1_b6_text
+          value: "          Night "
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.hasp_plate01_p1_b6_font
+          option: "7 Noto Sans 48"
+      - service: input_text.set_value
+        data:
+          entity_id: input_text.hasp_plate01_p1_b7_text
+          value: "  Lights Off "
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.hasp_plate01_p1_b7_font
+          option: "7 Noto Sans 48"
+
+
+
   ##############################################################################
   # Set automation group members on start - Thanks @Nightcat!
   - alias: hasp_plate01_00_AutomationGroupUpdate
@@ -323,7 +329,7 @@ automation:
     action:
       - service: group.set
         data_template:
-          object_id: "plate01_automations"
+          object_id: plate01_automations
           entities: >-
             {%- for item in states.automation if ((item.entity_id | lower).startswith('automation.hasp_plate01_')) -%}
             {{ item.entity_id }}
@@ -340,7 +346,7 @@ automation:
     action:
       - service: input_number.set_value
         data_template:
-          entity_id: "input_number.hasp_plate01_selectedforegroundcolor"
+          entity_id: input_number.hasp_plate01_selectedforegroundcolor
           value: "{{trigger.payload}}"
   - alias: hasp_plate01_00_Update_selectedbackgroundcolor
     trigger:
@@ -349,7 +355,7 @@ automation:
     action:
       - service: input_number.set_value
         data_template:
-          entity_id: "input_number.hasp_plate01_selectedbackgroundcolor"
+          entity_id: input_number.hasp_plate01_selectedbackgroundcolor
           value: "{{trigger.payload}}"
   - alias: hasp_plate01_00_Update_unselectedforegroundcolor
     trigger:
@@ -358,7 +364,7 @@ automation:
     action:
       - service: input_number.set_value
         data_template:
-          entity_id: "input_number.hasp_plate01_unselectedforegroundcolor"
+          entity_id: input_number.hasp_plate01_unselectedforegroundcolor
           value: "{{trigger.payload}}"
   - alias: hasp_plate01_00_Update_unselectedbackgroundcolor
     trigger:
@@ -367,7 +373,7 @@ automation:
     action:
       - service: input_number.set_value
         data_template:
-          entity_id: "input_number.hasp_plate01_unselectedbackgroundcolor"
+          entity_id: input_number.hasp_plate01_unselectedbackgroundcolor
           value: "{{trigger.payload}}"
 
   - alias: hasp_plate01_00_TurnOnMQTTLights
@@ -391,22 +397,22 @@ automation:
         to: "Light on Dark"
     action:
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_foreground_color"
+        entity_id: light.hasp_plate01_selected_foreground_color
         data:
           brightness: 255
           rgb_color: [255, 255, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_background_color"
+        entity_id: light.hasp_plate01_selected_background_color
         data:
           brightness: 1
           rgb_color: [0, 0, 0]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_foreground_color"
+        entity_id: light.hasp_plate01_unselected_foreground_color
         data:
           brightness: 224
           rgb_color: [255, 255, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_background_color"
+        entity_id: light.hasp_plate01_unselected_background_color
         data:
           brightness: 64
           rgb_color: [255, 255, 255]
@@ -418,22 +424,22 @@ automation:
         to: "Dark on Light"
     action:
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_foreground_color"
+        entity_id: light.hasp_plate01_selected_foreground_color
         data:
           brightness: 1
           rgb_color: [0, 0, 0]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_background_color"
+        entity_id: light.hasp_plate01_selected_background_color
         data:
           brightness: 255
           rgb_color: [255, 255, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_foreground_color"
+        entity_id: light.hasp_plate01_unselected_foreground_color
         data:
           brightness: 224
           rgb_color: [255, 255, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_background_color"
+        entity_id: light.hasp_plate01_unselected_background_color
         data:
           brightness: 96
           rgb_color: [255, 255, 255]
@@ -445,22 +451,22 @@ automation:
         to: "Dark on Warm Light"
     action:
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_foreground_color"
+        entity_id: light.hasp_plate01_selected_foreground_color
         data:
           brightness: 1
           rgb_color: [0, 0, 0]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_background_color"
+        entity_id: light.hasp_plate01_selected_background_color
         data:
           brightness: 255
           rgb_color: [255, 255, 198]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_foreground_color"
+        entity_id: light.hasp_plate01_unselected_foreground_color
         data:
           brightness: 255
           rgb_color: [255, 255, 198]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_background_color"
+        entity_id: light.hasp_plate01_unselected_background_color
         data:
           brightness: 96
           rgb_color: [255, 255, 255]
@@ -472,22 +478,22 @@ automation:
         to: "Midnight Blue"
     action:
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_foreground_color"
+        entity_id: light.hasp_plate01_selected_foreground_color
         data:
           brightness: 255
           rgb_color: [224, 224, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_background_color"
+        entity_id: light.hasp_plate01_selected_background_color
         data:
           brightness: 64
           rgb_color: [0, 0, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_foreground_color"
+        entity_id: light.hasp_plate01_unselected_foreground_color
         data:
           brightness: 224
           rgb_color: [224, 224, 255]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_background_color"
+        entity_id: light.hasp_plate01_unselected_background_color
         data:
           brightness: 96
           rgb_color: [127, 127, 255]
@@ -499,22 +505,22 @@ automation:
         to: "Hot Dog Stand"
     action:
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_foreground_color"
+        entity_id: light.hasp_plate01_selected_foreground_color
         data:
           brightness: 255
           rgb_color: [255, 255, 0]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_selected_background_color"
+        entity_id: light.hasp_plate01_selected_background_color
         data:
           brightness: 255
           rgb_color: [255, 0, 0]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_foreground_color"
+        entity_id: light.hasp_plate01_unselected_foreground_color
         data:
           brightness: 255
           rgb_color: [255, 0, 0]
       - service: light.turn_on
-        entity_id: "light.hasp_plate01_unselected_background_color"
+        entity_id: light.hasp_plate01_unselected_background_color
         data:
           brightness: 255
           rgb_color: [255, 255, 0]
